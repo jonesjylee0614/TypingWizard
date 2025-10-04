@@ -37,7 +37,7 @@ const formatTime = (seconds: number) => {
 
 const COUNTDOWN_TIME = 180; // 3分钟 = 180秒
 const PLAYER_MAX_HEALTH = 100;
-const PLAYER_DAMAGE_PER_MISS = 10;
+const PLAYER_DAMAGE_PER_MISS = 3;
 
 const TrainPage = () => {
   const { lessonId } = useParams();

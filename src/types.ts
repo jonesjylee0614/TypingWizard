@@ -47,6 +47,11 @@ export interface Attempt {
   stars: number;
   errors: AttemptErrorMap;
   rawInput: string;
+  maxCombo?: number;
+  mistakes?: number;
+  playerHealthRemaining?: number;
+  monsterHealthRemaining?: number;
+  outcome?: 'victory' | 'defeat' | 'timeout' | 'completed';
 }
 
 export interface AttemptsByLesson {

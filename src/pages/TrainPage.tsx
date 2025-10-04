@@ -36,6 +36,8 @@ const formatTime = (seconds: number) => {
 };
 
 const COUNTDOWN_TIME = 180; // 3分钟 = 180秒
+const PLAYER_MAX_HEALTH = 100;
+const PLAYER_DAMAGE_PER_MISS = 10;
 
 const TrainPage = () => {
   const { lessonId } = useParams();
@@ -60,6 +62,9 @@ const TrainPage = () => {
   const [showAchievement, setShowAchievement] = useState<string | null>(null);
   const [comboAnimation, setComboAnimation] = useState(false);
   const [playerDamaged, setPlayerDamaged] = useState(false);
+  const [playerHealth, setPlayerHealth] = useState(PLAYER_MAX_HEALTH);
+  const [mistakeHits, setMistakeHits] = useState(0);
+  const defeatTriggeredRef = useRef(false);
 
   useEffect(() => {
     textareaRef.current?.focus();
@@ -100,7 +105,7 @@ const TrainPage = () => {
   // 时间到自动结束
   useEffect(() => {
     if (remainingTime === 0 && startedAt && !finished) {
-      handleFinish();
+      handleFinish({ reason: 'timeout' });
     }
   }, [remainingTime, startedAt, finished]);
 
@@ -215,14 +220,17 @@ const TrainPage = () => {
     } else {
       // 错误则重置连击，并显示玩家被怪物攻击
       setCombo(0);
-      
+
       // 播放错误音效
       playErrorSound();
-      
+
       // 玩家被怪物攻击的效果
       setPlayerDamaged(true);
       setTimeout(() => setPlayerDamaged(false), 500);
-      
+
+      setPlayerHealth((prev) => Math.max(0, prev - PLAYER_DAMAGE_PER_MISS));
+      setMistakeHits((prev) => prev + 1);
+
       setErrorMap((prev) => {
         const next = { ...prev };
         next[expected] = (next[expected] ?? 0) + 1;
@@ -278,13 +286,24 @@ const TrainPage = () => {
     }
   };
 
-  const handleFinish = () => {
+  const handleFinish = (options?: { defeated?: boolean; reason?: 'timeout' }) => {
     if (finished) return;
     if (!startedAt) {
       alert('请至少输入一个字符再结束。');
       return;
     }
     const duration = Date.now() - startedAt;
+    const monsterHealthRemaining = Math.max(
+      0,
+      Math.round(100 - ((correctCount / (targetText.length || 1)) * 100))
+    );
+    const outcome = options?.defeated
+      ? 'defeat'
+      : options?.reason === 'timeout'
+        ? 'timeout'
+        : monsterHealthRemaining <= 0
+          ? 'victory'
+          : 'completed';
     const attempt = recordAttempt(lesson, {
       durationMs: duration,
       correct: correctCount,
@@ -293,12 +312,27 @@ const TrainPage = () => {
       wpm,
       acc: accuracy,
       errors: errorMap,
-      rawInput: entries.map((entry) => entry.char).join('')
+      rawInput: entries.map((entry) => entry.char).join(''),
+      maxCombo,
+      mistakes: mistakeHits,
+      playerHealthRemaining: playerHealth,
+      monsterHealthRemaining,
+      outcome
     });
     setFinished(true);
     setEndedAt(Date.now());
     navigate(`/result/${lesson.id}/${attempt.id}`);
   };
+
+  useEffect(() => {
+    if (playerHealth === 0 && startedAt && !finished && !defeatTriggeredRef.current) {
+      defeatTriggeredRef.current = true;
+      handleFinish({ defeated: true });
+    }
+    if (playerHealth > 0 && defeatTriggeredRef.current) {
+      defeatTriggeredRef.current = false;
+    }
+  }, [playerHealth, startedAt, finished]);
 
   const handleExit = () => {
     const confirmExit = window.confirm('确认退出本次练习吗？未保存的数据将丢失。');
@@ -310,8 +344,11 @@ const TrainPage = () => {
   const showKeyboard = settings.keyboardHint;
   
   // 怪物血量（根据进度反向计算）
-  const monsterHealth = Math.max(0, 100 - Math.floor(progressRatio * 100));
+  const monsterHealth = Math.max(0, Math.round(100 - ((correctCount / (targetText.length || 1)) * 100)));
   const monsterHealthColor = monsterHealth > 60 ? '#ef4444' : monsterHealth > 30 ? '#f97316' : '#facc15';
+
+  const playerHealthPercent = Math.max(0, Math.round((playerHealth / PLAYER_MAX_HEALTH) * 100));
+  const playerHealthColor = playerHealthPercent > 60 ? '#22c55e' : playerHealthPercent > 30 ? '#f59e0b' : '#ef4444';
   
   // 时间警告颜色
   const timeColor = remainingTime < 30 ? '#ef4444' : remainingTime < 60 ? '#f97316' : '#22c55e';
@@ -340,46 +377,97 @@ const TrainPage = () => {
       )}
       
       {/* 怪物血条区域 */}
-      <div className={`card ${monsterHit ? 'monster-hit' : ''}`} style={{ 
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+      <div className={`card ${monsterHit ? 'monster-hit' : ''}`} style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         color: '#fff',
         padding: '20px',
         marginBottom: '16px',
         border: '3px solid #f97316',
         boxShadow: '0 8px 32px rgba(249, 115, 22, 0.3)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div className="monster-emoji" style={{ fontSize: '48px' }}>
-              {monsterHealth > 50 ? '👾' : monsterHealth > 20 ? '😵' : '💀'}
+        <div style={{ display: 'grid', gap: '16px', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+          <div style={{
+            background: 'rgba(15, 23, 42, 0.35)',
+            borderRadius: '16px',
+            padding: '16px',
+            border: '1px solid rgba(255,255,255,0.2)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+              <div className="monster-emoji" style={{ fontSize: '48px' }}>
+                {monsterHealth > 50 ? '👾' : monsterHealth > 20 ? '😵' : '💀'}
+              </div>
+              <div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold' }}>打字怪兽</div>
+                <div style={{ fontSize: '14px', opacity: 0.9 }}>击败它完成关卡！</div>
+              </div>
             </div>
-            <div>
-              <div style={{ fontSize: '24px', fontWeight: 'bold' }}>打字怪兽</div>
-              <div style={{ fontSize: '14px', opacity: 0.9 }}>击败它完成关卡！</div>
+            <div style={{
+              width: '100%',
+              height: '20px',
+              background: 'rgba(15,23,42,0.6)',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              border: '1px solid rgba(255,255,255,0.25)'
+            }}>
+              <div style={{
+                width: `${monsterHealth}%`,
+                height: '100%',
+                background: `linear-gradient(90deg, ${monsterHealthColor} 0%, #fbbf24 100%)`,
+                transition: 'width 0.3s ease',
+                boxShadow: `0 0 10px ${monsterHealthColor}`
+              }} />
+            </div>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginTop: '8px',
+              fontWeight: 600
+            }}>
+              <span>怪物血量</span>
+              <span style={{ color: monsterHealthColor, fontSize: '20px' }}>{monsterHealth}%</span>
             </div>
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '36px', fontWeight: 'bold', color: monsterHealthColor }}>
-              {monsterHealth}%
+          <div style={{
+            background: 'rgba(15, 23, 42, 0.35)',
+            borderRadius: '16px',
+            padding: '16px',
+            border: '1px solid rgba(255,255,255,0.2)',
+            position: 'relative'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+              <div style={{ fontSize: '48px' }}>{playerHealthPercent > 30 ? '🧙‍♂️' : '🛡️'}</div>
+              <div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold' }}>学员</div>
+                <div style={{ fontSize: '14px', opacity: 0.9 }}>保护自己，避免失误！</div>
+              </div>
             </div>
-            <div style={{ fontSize: '14px', opacity: 0.9 }}>怪物血量</div>
+            <div style={{
+              width: '100%',
+              height: '20px',
+              background: 'rgba(15,23,42,0.6)',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              border: '1px solid rgba(255,255,255,0.25)'
+            }}>
+              <div style={{
+                width: `${playerHealthPercent}%`,
+                height: '100%',
+                background: `linear-gradient(90deg, #16a34a 0%, ${playerHealthColor} 100%)`,
+                transition: 'width 0.3s ease',
+                boxShadow: `0 0 10px ${playerHealthColor}`
+              }} />
+            </div>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginTop: '8px',
+              fontWeight: 600
+            }}>
+              <span>玩家血量</span>
+              <span style={{ color: playerHealthColor, fontSize: '20px' }}>{playerHealthPercent}%</span>
+            </div>
+            <div style={{ marginTop: '6px', fontSize: '14px', opacity: 0.85 }}>已承受攻击：{mistakeHits} 次</div>
           </div>
-        </div>
-        <div style={{ 
-          width: '100%', 
-          height: '24px', 
-          background: 'rgba(0,0,0,0.3)', 
-          borderRadius: '12px',
-          overflow: 'hidden',
-          border: '2px solid rgba(255,255,255,0.3)'
-        }}>
-          <div style={{ 
-            width: `${monsterHealth}%`, 
-            height: '100%', 
-            background: `linear-gradient(90deg, ${monsterHealthColor} 0%, #fbbf24 100%)`,
-            transition: 'width 0.3s ease',
-            boxShadow: `0 0 10px ${monsterHealthColor}`
-          }} />
         </div>
       </div>
 
@@ -393,6 +481,11 @@ const TrainPage = () => {
         <div className="hud-item">
           <span style={{ color: '#92400e', fontWeight: 'bold' }}>⏱️ 剩余时间</span>
           <strong style={{ color: timeColor, fontSize: '28px' }}>{formatTime(remainingTime)}</strong>
+        </div>
+        <div className="hud-item">
+          <span style={{ color: '#92400e', fontWeight: 'bold' }}>🛡️ 玩家血量</span>
+          <strong style={{ color: playerHealthColor, fontSize: '28px' }}>{playerHealthPercent}%</strong>
+          <div style={{ fontSize: '12px', color: '#92400e' }}>失误 {mistakeHits} 次</div>
         </div>
         <div className={`hud-item ${comboAnimation ? 'combo-animation' : ''}`}>
           <span style={{ color: '#92400e', fontWeight: 'bold' }}>⚡ 连击</span>
@@ -474,11 +567,11 @@ const TrainPage = () => {
           />
         </div>
         <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
-          <button 
-            className="primary" 
-            onClick={handleFinish} 
+          <button
+            className="primary"
+            onClick={() => handleFinish()}
             disabled={entries.length === 0}
-            style={{ 
+            style={{
               background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
               fontSize: '18px',
               padding: '14px 28px',
@@ -490,9 +583,9 @@ const TrainPage = () => {
           </button>
           {entries.length >= targetText.length && (
             <>
-              <button 
-                className="secondary" 
-                onClick={handleFinish}
+              <button
+                className="secondary"
+                onClick={() => handleFinish()}
                 style={{
                   background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
                   color: '#fff',
@@ -506,7 +599,7 @@ const TrainPage = () => {
                 ✅ 完成并查看结果
               </button>
               {monsterHealth === 0 && (
-                <div style={{ 
+                <div style={{
                   marginLeft: '12px',
                   fontSize: '24px',
                   fontWeight: 'bold',

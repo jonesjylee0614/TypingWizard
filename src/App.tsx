@@ -21,11 +21,18 @@ const App = () => {
   const { app } = useAppData();
   return (
     <div>
-      <header style={{ background: '#0f172a', color: '#fff', padding: '12px 24px' }}>
+      <header style={{ 
+        background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', 
+        color: '#fff', 
+        padding: '16px 24px',
+        boxShadow: '0 4px 20px rgba(249, 115, 22, 0.3)'
+      }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <strong>TypingWizard 学生端</strong>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>离线练习 · 版本 {app.version}</div>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              ⌨️ TypingWizard
+            </div>
+            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.9)', fontWeight: 500 }}>🎮 快乐打字 · 版本 {app.version}</div>
           </div>
           <nav style={{ display: 'flex', gap: 16 }}>
             {navItems.map((item) => (
@@ -33,8 +40,13 @@ const App = () => {
                 key={item.to}
                 to={item.to}
                 style={({ isActive }) => ({
-                  color: isActive ? '#facc15' : '#fff',
-                  fontWeight: isActive ? 700 : 500
+                  color: '#fff',
+                  fontWeight: isActive ? 700 : 500,
+                  padding: '8px 16px',
+                  borderRadius: '999px',
+                  background: isActive ? 'rgba(255,255,255,0.2)' : 'transparent',
+                  transition: 'all 0.3s ease',
+                  fontSize: '16px'
                 })}
               >
                 {item.label}

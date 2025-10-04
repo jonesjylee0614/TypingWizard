@@ -28,41 +28,71 @@ const HomePage = () => {
   };
 
   return (
-    <div className="card" style={{ marginTop: 32 }}>
-      <h1>{isFirstVisit ? '欢迎来到 TypingWizard' : '欢迎回来'}</h1>
-      <p className="subtitle">
-        {isFirstVisit
-          ? '按照课程逐步练习，系统会记录你的每一次打字成绩。'
-          : '继续上一关的练习，或浏览课程、历史统计。'}
-      </p>
+    <div className="card" style={{ 
+      marginTop: 32,
+      background: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)',
+      border: '3px solid #f97316'
+    }}>
+      <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+        <div style={{ fontSize: '72px', marginBottom: '16px' }}>⌨️🎮</div>
+        <h1 style={{ fontSize: '36px', color: '#ea580c', marginBottom: '8px' }}>
+          {isFirstVisit ? '🎉 欢迎来到 TypingWizard' : '👋 欢迎回来！'}
+        </h1>
+        <p style={{ fontSize: '18px', color: '#92400e', fontWeight: 500 }}>
+          {isFirstVisit
+            ? '🚀 开始你的打字冒险之旅，击败50个关卡的怪物！'
+            : '💪 继续你的打字冒险，成为打字大师！'}
+        </p>
+      </div>
 
-      <div style={{ display: 'flex', gap: 24, marginTop: 24, flexWrap: 'wrap' }}>
-        <button className="primary" onClick={handleContinue}>
-          {isFirstVisit ? '开始练习' : '继续练习'}
+      <div style={{ display: 'flex', gap: 24, marginTop: 24, flexWrap: 'wrap', justifyContent: 'center' }}>
+        <button className="primary" onClick={handleContinue} style={{
+          fontSize: '20px',
+          padding: '16px 32px',
+          boxShadow: '0 8px 24px rgba(249, 115, 22, 0.4)'
+        }}>
+          {isFirstVisit ? '🎯 开始练习' : '▶️ 继续练习'}
         </button>
         <Link to="/lessons">
-          <button className="secondary">查看全部课程</button>
+          <button className="secondary" style={{ fontSize: '18px', padding: '16px 32px' }}>
+            📚 查看全部课程
+          </button>
         </Link>
         <Link to="/stats">
-          <button className="secondary">历史统计</button>
+          <button className="secondary" style={{ fontSize: '18px', padding: '16px 32px' }}>
+            📊 历史统计
+          </button>
         </Link>
       </div>
 
       {lastAttemptSummary && (
         <div style={{ marginTop: 32 }}>
-          <h2>上次成绩</h2>
-          <div className="card" style={{ borderRadius: 12, boxShadow: 'none', border: '1px solid rgba(148,163,184,0.3)' }}>
+          <h2 style={{ color: '#ea580c', fontSize: '24px' }}>🏆 上次成绩</h2>
+          <div className="card" style={{ 
+            borderRadius: 12, 
+            boxShadow: '0 4px 12px rgba(249, 115, 22, 0.2)', 
+            border: '2px solid #fdba74',
+            background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)'
+          }}>
             <div className="flex space-between">
               <div>
-                <div style={{ fontWeight: 600 }}>{lastAttemptSummary.lesson.title}</div>
-                <div style={{ color: '#475569', fontSize: 14 }}>
-                  {new Date(lastAttemptSummary.attempt.at).toLocaleString()}
+                <div style={{ fontWeight: 700, color: '#92400e', fontSize: '18px' }}>
+                  {lastAttemptSummary.lesson.title}
+                </div>
+                <div style={{ color: '#78350f', fontSize: 14, fontWeight: 500 }}>
+                  📅 {new Date(lastAttemptSummary.attempt.at).toLocaleString()}
                 </div>
               </div>
               <div className="chip-row">
-                <span className="badge">WPM {lastAttemptSummary.attempt.wpm}</span>
-                <span className="badge">准确率 {(lastAttemptSummary.attempt.acc * 100).toFixed(1)}%</span>
-                <span className="badge">{lastAttemptSummary.attempt.stars} ★</span>
+                <span className="badge" style={{ fontSize: '14px' }}>
+                  🚀 {lastAttemptSummary.attempt.wpm} WPM
+                </span>
+                <span className="badge" style={{ fontSize: '14px' }}>
+                  🎯 {(lastAttemptSummary.attempt.acc * 100).toFixed(1)}%
+                </span>
+                <span className="badge" style={{ fontSize: '14px' }}>
+                  ⭐ {lastAttemptSummary.attempt.stars} 星
+                </span>
               </div>
             </div>
           </div>
@@ -70,13 +100,23 @@ const HomePage = () => {
       )}
 
       <section style={{ marginTop: 40 }}>
-        <h2>练习流程</h2>
-        <ol style={{ color: '#475569', lineHeight: 1.8 }}>
-          <li>从课程列表中选择一关，了解目标与要求。</li>
-          <li>进入练习页，根据提示敲击键盘，实时查看进度与准确率。</li>
-          <li>练习完成后查看成绩，系统自动保存并解锁下一关。</li>
-          <li>在统计页复习历史成绩，调整设置以符合你的习惯。</li>
-        </ol>
+        <h2 style={{ color: '#ea580c', fontSize: '24px', marginBottom: '16px' }}>
+          🎯 游戏玩法
+        </h2>
+        <div style={{ 
+          background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)',
+          padding: '20px',
+          borderRadius: '12px',
+          border: '2px solid #fdba74'
+        }}>
+          <ol style={{ color: '#92400e', lineHeight: 2, fontSize: '16px', fontWeight: 500, marginLeft: '20px' }}>
+            <li>📚 选择关卡，每个关卡都有一个怪物等着你！</li>
+            <li>⌨️ 快速准确地打字，击败怪物！</li>
+            <li>🔥 保持连击，解锁酷炫成就！</li>
+            <li>⏱️ 在3分钟内完成，挑战你的极限！</li>
+            <li>🌟 收集星星，解锁更多关卡！</li>
+          </ol>
+        </div>
       </section>
     </div>
   );

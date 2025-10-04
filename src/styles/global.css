@@ -1,13 +1,13 @@
 :root {
   font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
   color: #1f2933;
-  background-color: #f5f7fa;
+  background-color: #fff7ed;
   line-height: 1.5;
 }
 
 body {
   margin: 0;
-  background: linear-gradient(180deg, #f5f7fa 0%, #ffffff 100%);
+  background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%);
 }
 
 a {
@@ -34,8 +34,8 @@ button {
   background: #ffffff;
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 12px 32px rgba(249, 115, 22, 0.15);
+  border: 2px solid rgba(249, 115, 22, 0.2);
 }
 
 .grid {
@@ -44,29 +44,42 @@ button {
 }
 
 button.primary {
-  background: #2563eb;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
   border: none;
   color: #fff;
   padding: 12px 20px;
   border-radius: 999px;
-  transition: background 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.3);
 }
 
 button.primary:hover {
-  background: #1d4ed8;
+  background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
+}
+
+button.primary:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 button.secondary {
-  background: #e2e8f0;
-  border: none;
-  color: #1f2937;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #f59e0b;
+  color: #92400e;
   padding: 12px 20px;
   border-radius: 999px;
-  transition: background 0.2s ease;
+  transition: all 0.3s ease;
+  font-weight: 600;
 }
 
 button.secondary:hover {
-  background: #cbd5f5;
+  background: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
 .badge {
@@ -76,9 +89,10 @@ button.secondary:hover {
   border-radius: 999px;
   padding: 4px 12px;
   font-size: 12px;
-  background: rgba(37, 99, 235, 0.12);
-  color: #1d4ed8;
+  background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+  color: #9a3412;
   font-weight: 600;
+  border: 1px solid #f97316;
 }
 
 .tag {
@@ -313,4 +327,79 @@ kbd {
   background: #facc15;
   color: #0f172a;
   border-color: #facc15;
+}
+
+/* 连击动画 */
+@keyframes combo-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes combo-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(249, 115, 22, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.8), 0 0 30px rgba(249, 115, 22, 0.6);
+  }
+}
+
+.combo-animation {
+  animation: combo-pulse 0.3s ease-in-out, combo-glow 0.5s ease-in-out;
+}
+
+/* 怪物受伤动画 */
+@keyframes monster-hit {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+.monster-hit {
+  animation: monster-hit 0.3s ease-in-out;
+}
+
+/* 成就弹出动画 */
+@keyframes achievement-popup {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.8);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.achievement-popup {
+  animation: achievement-popup 0.5s ease-out;
+}
+
+/* 打字正确的闪光效果 */
+@keyframes char-success {
+  0% {
+    color: #4ade80;
+    text-shadow: 0 0 5px #4ade80;
+  }
+  100% {
+    color: #4ade80;
+    text-shadow: none;
+  }
+}
+
+.typing-char.correct {
+  animation: char-success 0.3s ease-out;
 }

@@ -315,6 +315,7 @@ kbd {
   min-width: 32px;
   text-align: center;
   transition: all 0.2s ease;
+  position: relative;
 }
 
 .virtual-key.active {
@@ -327,6 +328,29 @@ kbd {
   background: #facc15;
   color: #0f172a;
   border-color: #facc15;
+}
+
+/* 特殊键样式 (空格和回车) */
+.virtual-key.special-key {
+  min-width: 120px;
+  font-weight: bold;
+}
+
+/* F和J定位键标记 */
+.virtual-key.home-row {
+  border-bottom: 3px solid #f97316;
+  font-weight: bold;
+}
+
+.home-indicator {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 3px;
+  background: #f97316;
+  border-radius: 2px;
 }
 
 /* 连击动画 */
@@ -367,6 +391,35 @@ kbd {
 
 .monster-hit {
   animation: monster-hit 0.3s ease-in-out;
+}
+
+/* 怪物移动动画 */
+@keyframes monster-idle {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.05);
+  }
+}
+
+.monster-emoji {
+  display: inline-block;
+  animation: monster-idle 2s ease-in-out infinite;
+}
+
+/* 怪物攻击玩家动画 */
+@keyframes player-damaged {
+  0%, 100% {
+    box-shadow: 0 8px 32px rgba(249, 115, 22, 0.3);
+  }
+  50% {
+    box-shadow: 0 8px 32px rgba(239, 68, 68, 0.8), 0 0 20px rgba(239, 68, 68, 0.6);
+  }
+}
+
+.player-damaged {
+  animation: player-damaged 0.5s ease-in-out;
 }
 
 /* 成就弹出动画 */

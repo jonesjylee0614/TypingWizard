@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAppData } from '../context/AppDataContext';
 import { AttemptErrorMap } from '../types';
 import { generateLessonContent } from '../data/lessons';
+import { playTypingSound, playErrorSound, playComboSound, playAchievementSound, playMonsterHitSound } from '../utils/sounds';
 
 interface TypedEntry {
   char: string;
@@ -12,8 +13,12 @@ interface TypedEntry {
 const keyRows = [
   ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
   ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';'],
-  ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/']
+  ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/'],
+  ['Space', 'Enter']
 ];
+
+// 特殊标记键 (F和J是盲打定位键)
+const homeRowKeys = ['f', 'j'];
 
 const formatDuration = (ms: number) => {
   if (ms <= 0) return '0s';
@@ -54,10 +59,29 @@ const TrainPage = () => {
   const [monsterHit, setMonsterHit] = useState(false);
   const [showAchievement, setShowAchievement] = useState<string | null>(null);
   const [comboAnimation, setComboAnimation] = useState(false);
+  const [playerDamaged, setPlayerDamaged] = useState(false);
 
   useEffect(() => {
     textareaRef.current?.focus();
   }, []);
+
+  // 重新聚焦文本域，修复重练本关后无法输入的问题
+  useEffect(() => {
+    const focusTextarea = () => {
+      textareaRef.current?.focus();
+    };
+    
+    // 延迟聚焦确保组件完全加载
+    const timer = setTimeout(focusTextarea, 100);
+    
+    // 点击文档时也重新聚焦
+    document.addEventListener('click', focusTextarea);
+    
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('click', focusTextarea);
+    };
+  }, [lessonId]);
 
   // 倒计时定时器
   useEffect(() => {
@@ -143,8 +167,12 @@ const TrainPage = () => {
     setTotalKeystrokes((prev) => prev + 1);
     
     if (isCorrect) {
+      // 播放击键音效
+      playTypingSound();
+      
       // 触发怪物受伤动画
       setMonsterHit(true);
+      playMonsterHitSound();
       setTimeout(() => setMonsterHit(false), 300);
       
       // 连击系统
@@ -154,6 +182,11 @@ const TrainPage = () => {
           setMaxCombo(newCombo);
         }
         
+        // 连击音效（每10次触发）
+        if (newCombo % 10 === 0) {
+          playComboSound(newCombo);
+        }
+        
         // 触发连击动画
         setComboAnimation(true);
         setTimeout(() => setComboAnimation(false), 500);
@@ -161,23 +194,35 @@ const TrainPage = () => {
         // 成就检查
         if (newCombo === 10) {
           setShowAchievement('🔥 连击达人！10连击！');
+          playAchievementSound();
           setTimeout(() => setShowAchievement(null), 3000);
         } else if (newCombo === 25) {
           setShowAchievement('⚡ 疾风之指！25连击！');
+          playAchievementSound();
           setTimeout(() => setShowAchievement(null), 3000);
         } else if (newCombo === 50) {
           setShowAchievement('🌟 打字大师！50连击！');
+          playAchievementSound();
           setTimeout(() => setShowAchievement(null), 3000);
         } else if (newCombo === 100) {
           setShowAchievement('👑 传奇键盘侠！100连击！');
+          playAchievementSound();
           setTimeout(() => setShowAchievement(null), 3000);
         }
         
         return newCombo;
       });
     } else {
-      // 错误则重置连击
+      // 错误则重置连击，并显示玩家被怪物攻击
       setCombo(0);
+      
+      // 播放错误音效
+      playErrorSound();
+      
+      // 玩家被怪物攻击的效果
+      setPlayerDamaged(true);
+      setTimeout(() => setPlayerDamaged(false), 500);
+      
       setErrorMap((prev) => {
         const next = { ...prev };
         next[expected] = (next[expected] ?? 0) + 1;
@@ -273,13 +318,13 @@ const TrainPage = () => {
 
   return (
     <div style={{ marginTop: 24, position: 'relative' }}>
-      {/* 成就弹出 */}
+      {/* 成就弹出 - 移到顶部不挡住输入区 */}
       {showAchievement && (
         <div className="achievement-popup" style={{
           position: 'fixed',
-          top: '50%',
+          top: '100px',
           left: '50%',
-          transform: 'translate(-50%, -50%)',
+          transform: 'translateX(-50%)',
           background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
           color: '#78350f',
           padding: '24px 48px',
@@ -305,7 +350,7 @@ const TrainPage = () => {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ fontSize: '48px', transition: 'transform 0.3s ease' }}>
+            <div className="monster-emoji" style={{ fontSize: '48px' }}>
               {monsterHealth > 50 ? '👾' : monsterHealth > 20 ? '😵' : '💀'}
             </div>
             <div>
@@ -383,7 +428,7 @@ const TrainPage = () => {
         </div>
       </div>
 
-      <div className="card" style={{ 
+      <div className={`card ${playerDamaged ? 'player-damaged' : ''}`} style={{ 
         marginTop: 24,
         background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
         border: '3px solid #f97316',
@@ -482,16 +527,45 @@ const TrainPage = () => {
       {showKeyboard && (
         <div className="virtual-keyboard">
           {keyRows.map((row, rowIndex) => (
-            <div key={rowIndex} className="virtual-keyboard-row">
+            <div key={rowIndex} className="virtual-keyboard-row" style={
+              rowIndex === 0 ? { paddingLeft: '0px' } : 
+              rowIndex === 1 ? { paddingLeft: '20px' } : 
+              rowIndex === 2 ? { paddingLeft: '40px' } :
+              { justifyContent: 'center', marginTop: '8px' }
+            }>
               {row.map((key) => {
-                const isTarget = expectedChar.toLowerCase() === key;
-                const isActive = entries.length > 0 && entries[entries.length - 1].char.toLowerCase() === key;
+                // 处理特殊键
+                let displayKey = key;
+                let checkChar = key;
+                let isSpecialKey = false;
+                
+                if (key === 'Space') {
+                  displayKey = '空格';
+                  checkChar = ' ';
+                  isSpecialKey = true;
+                } else if (key === 'Enter') {
+                  displayKey = '回车 ↵';
+                  checkChar = '\n';
+                  isSpecialKey = true;
+                }
+                
+                const isTarget = expectedChar === checkChar || expectedChar.toLowerCase() === checkChar;
+                const isActive = entries.length > 0 && (
+                  entries[entries.length - 1].char === checkChar || 
+                  entries[entries.length - 1].char.toLowerCase() === checkChar
+                );
+                const isHomeRow = homeRowKeys.includes(key);
+                
                 const classNames = ['virtual-key'];
                 if (isActive) classNames.push('active');
                 if (isTarget) classNames.push('target');
+                if (isHomeRow) classNames.push('home-row');
+                if (isSpecialKey) classNames.push('special-key');
+                
                 return (
                   <span key={key} className={classNames.join(' ')}>
-                    {key}
+                    {displayKey}
+                    {isHomeRow && <div className="home-indicator"></div>}
                   </span>
                 );
               })}

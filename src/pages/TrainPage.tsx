@@ -354,7 +354,16 @@ const TrainPage = () => {
   const timeColor = remainingTime < 30 ? '#ef4444' : remainingTime < 60 ? '#f97316' : '#22c55e';
 
   return (
-    <div style={{ marginTop: 24, position: 'relative' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 900,
+          margin: '24px auto 48px',
+          padding: '0 16px',
+          position: 'relative'
+        }}
+      >
       {/* 成就弹出 - 移到顶部不挡住输入区 */}
       {showAchievement && (
         <div className="achievement-popup" style={{
@@ -381,7 +390,7 @@ const TrainPage = () => {
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         color: '#fff',
         padding: '20px',
-        marginBottom: '16px',
+        marginBottom: '12px',
         border: '3px solid #f97316',
         boxShadow: '0 8px 32px rgba(249, 115, 22, 0.3)'
       }}>
@@ -521,17 +530,17 @@ const TrainPage = () => {
         </div>
       </div>
 
-      <div className={`card ${playerDamaged ? 'player-damaged' : ''}`} style={{ 
-        marginTop: 24,
+      <div className={`card ${playerDamaged ? 'player-damaged' : ''}`} style={{
+        marginTop: 16,
         background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
         border: '3px solid #f97316',
         boxShadow: '0 8px 32px rgba(249, 115, 22, 0.3)'
       }}>
         <div className="typing-container" onClick={() => textareaRef.current?.focus()} style={{
           background: 'transparent',
-          fontSize: '28px',
-          lineHeight: '1.6',
-          padding: '32px'
+          fontSize: '22px',
+          lineHeight: '1.5',
+          padding: '20px'
         }}>
           <div className="typing-text">
             {targetText.split('').map((char, index) => {
@@ -566,7 +575,7 @@ const TrainPage = () => {
             readOnly
           />
         </div>
-        <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
+        <div style={{ marginTop: 20, display: 'flex', gap: 12 }}>
           <button
             className="primary"
             onClick={() => handleFinish()}
@@ -612,7 +621,7 @@ const TrainPage = () => {
             </>
           )}
         </div>
-        <div style={{ marginTop: 16, color: '#94a3b8', fontSize: 16, textAlign: 'center', fontWeight: 'bold' }}>
+        <div className="typing-hint">
           💡 直接在键盘上敲击即可 · 建议切换为英文输入法
         </div>
       </div>
@@ -681,6 +690,7 @@ const TrainPage = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

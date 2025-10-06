@@ -198,6 +198,112 @@ input[type='checkbox'] {
   align-items: center;
 }
 
+.train-page {
+  margin-top: 24px;
+  position: relative;
+  padding-top: 120px;
+}
+
+.train-stats-bar {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(920px, calc(100% - 32px));
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(249, 115, 22, 0.82) 0%, rgba(251, 191, 36, 0.75) 100%);
+  color: #fff7ed;
+  box-shadow: 0 12px 30px rgba(249, 115, 22, 0.25);
+  backdrop-filter: blur(6px);
+  z-index: 950;
+}
+
+.train-stats-bar__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.train-stats-bar__label {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.train-stats-bar__value {
+  font-size: 16px;
+  color: #ffffff;
+}
+
+.train-floating-buttons {
+  position: fixed;
+  top: 8px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 999;
+}
+
+.train-floating-buttons button {
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(15, 23, 42, 0.55);
+  color: #f8fafc;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 999px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(6px);
+}
+
+.train-floating-buttons button:hover:not(:disabled) {
+  background: rgba(30, 41, 59, 0.75);
+  transform: translateY(-1px);
+}
+
+.train-floating-buttons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.train-floating-buttons__exit {
+  background: rgba(220, 38, 38, 0.5);
+  border-color: rgba(248, 113, 113, 0.6);
+}
+
+.train-floating-buttons__exit:hover {
+  background: rgba(220, 38, 38, 0.7);
+}
+
+@media (max-width: 1366px) {
+  .train-page {
+    padding-top: 132px;
+  }
+
+  .train-stats-bar {
+    gap: 14px;
+    padding: 0 16px;
+  }
+
+  .train-stats-bar__label {
+    font-size: 12px;
+  }
+
+  .train-stats-bar__value {
+    font-size: 14px;
+  }
+}
+
 .flex.center {
   justify-content: center;
   align-items: center;

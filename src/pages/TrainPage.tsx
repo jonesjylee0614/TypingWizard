@@ -58,9 +58,7 @@ const TrainPage = () => {
   const [combo, setCombo] = useState(0);
   const [maxCombo, setMaxCombo] = useState(0);
   const [contentKey, setContentKey] = useState(Date.now()); // 用于强制重新生成内容
-  const [monsterHit, setMonsterHit] = useState(false);
   const [showAchievement, setShowAchievement] = useState<string | null>(null);
-  const [comboAnimation, setComboAnimation] = useState(false);
   const [playerDamaged, setPlayerDamaged] = useState(false);
   const [playerHealth, setPlayerHealth] = useState(PLAYER_MAX_HEALTH);
   const [mistakeHits, setMistakeHits] = useState(0);
@@ -124,7 +122,6 @@ const TrainPage = () => {
     return dynamicContent.join('\n');
   }, [lesson, contentKey]);
 
-  const progressRatio = entries.length / (targetText.length || 1);
   const correctCount = useMemo(() => entries.filter((entry) => entry.correct).length, [entries]);
   useEffect(() => {
     if (!finished && endedAt !== null) {
@@ -175,10 +172,7 @@ const TrainPage = () => {
       // 播放击键音效
       playTypingSound();
       
-      // 触发怪物受伤动画
-      setMonsterHit(true);
       playMonsterHitSound();
-      setTimeout(() => setMonsterHit(false), 300);
       
       // 连击系统
       setCombo((prev) => {
@@ -191,10 +185,6 @@ const TrainPage = () => {
         if (newCombo % 10 === 0) {
           playComboSound(newCombo);
         }
-        
-        // 触发连击动画
-        setComboAnimation(true);
-        setTimeout(() => setComboAnimation(false), 500);
         
         // 成就检查
         if (newCombo === 10) {
@@ -349,12 +339,13 @@ const TrainPage = () => {
 
   const playerHealthPercent = Math.max(0, Math.round((playerHealth / PLAYER_MAX_HEALTH) * 100));
   const playerHealthColor = playerHealthPercent > 60 ? '#22c55e' : playerHealthPercent > 30 ? '#f59e0b' : '#ef4444';
-  
+
   // 时间警告颜色
   const timeColor = remainingTime < 30 ? '#ef4444' : remainingTime < 60 ? '#f97316' : '#22c55e';
+  const comboColor = combo >= 50 ? '#facc15' : combo >= 25 ? '#fbbf24' : combo >= 10 ? '#fde68a' : '#fff7ed';
 
   return (
-    <div style={{ marginTop: 24, position: 'relative' }}>
+    <div className="train-page">
       {/* 成就弹出 - 移到顶部不挡住输入区 */}
       {showAchievement && (
         <div className="achievement-popup" style={{
@@ -375,153 +366,52 @@ const TrainPage = () => {
           {showAchievement}
         </div>
       )}
-      
-      {/* 怪物血条区域 */}
-      <div className={`card ${monsterHit ? 'monster-hit' : ''}`} style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: '#fff',
-        padding: '20px',
-        marginBottom: '16px',
-        border: '3px solid #f97316',
-        boxShadow: '0 8px 32px rgba(249, 115, 22, 0.3)'
-      }}>
-        <div style={{ display: 'grid', gap: '16px', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
-          <div style={{
-            background: 'rgba(15, 23, 42, 0.35)',
-            borderRadius: '16px',
-            padding: '16px',
-            border: '1px solid rgba(255,255,255,0.2)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-              <div className="monster-emoji" style={{ fontSize: '48px' }}>
-                {monsterHealth > 50 ? '👾' : monsterHealth > 20 ? '😵' : '💀'}
-              </div>
-              <div>
-                <div style={{ fontSize: '24px', fontWeight: 'bold' }}>打字怪兽</div>
-                <div style={{ fontSize: '14px', opacity: 0.9 }}>击败它完成关卡！</div>
-              </div>
-            </div>
-            <div style={{
-              width: '100%',
-              height: '20px',
-              background: 'rgba(15,23,42,0.6)',
-              borderRadius: '12px',
-              overflow: 'hidden',
-              border: '1px solid rgba(255,255,255,0.25)'
-            }}>
-              <div style={{
-                width: `${monsterHealth}%`,
-                height: '100%',
-                background: `linear-gradient(90deg, ${monsterHealthColor} 0%, #fbbf24 100%)`,
-                transition: 'width 0.3s ease',
-                boxShadow: `0 0 10px ${monsterHealthColor}`
-              }} />
-            </div>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              marginTop: '8px',
-              fontWeight: 600
-            }}>
-              <span>怪物血量</span>
-              <span style={{ color: monsterHealthColor, fontSize: '20px' }}>{monsterHealth}%</span>
-            </div>
-          </div>
-          <div style={{
-            background: 'rgba(15, 23, 42, 0.35)',
-            borderRadius: '16px',
-            padding: '16px',
-            border: '1px solid rgba(255,255,255,0.2)',
-            position: 'relative'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-              <div style={{ fontSize: '48px' }}>{playerHealthPercent > 30 ? '🧙‍♂️' : '🛡️'}</div>
-              <div>
-                <div style={{ fontSize: '24px', fontWeight: 'bold' }}>学员</div>
-                <div style={{ fontSize: '14px', opacity: 0.9 }}>保护自己，避免失误！</div>
-              </div>
-            </div>
-            <div style={{
-              width: '100%',
-              height: '20px',
-              background: 'rgba(15,23,42,0.6)',
-              borderRadius: '12px',
-              overflow: 'hidden',
-              border: '1px solid rgba(255,255,255,0.25)'
-            }}>
-              <div style={{
-                width: `${playerHealthPercent}%`,
-                height: '100%',
-                background: `linear-gradient(90deg, #16a34a 0%, ${playerHealthColor} 100%)`,
-                transition: 'width 0.3s ease',
-                boxShadow: `0 0 10px ${playerHealthColor}`
-              }} />
-            </div>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              marginTop: '8px',
-              fontWeight: 600
-            }}>
-              <span>玩家血量</span>
-              <span style={{ color: playerHealthColor, fontSize: '20px' }}>{playerHealthPercent}%</span>
-            </div>
-            <div style={{ marginTop: '6px', fontSize: '14px', opacity: 0.85 }}>已承受攻击：{mistakeHits} 次</div>
-          </div>
+
+      <div className="train-stats-bar">
+        <div className="train-stats-bar__item">
+          <span className="train-stats-bar__label">⏱ 剩余时间</span>
+          <span className="train-stats-bar__value" style={{ color: timeColor }}>{formatTime(remainingTime)}</span>
+        </div>
+        <div className="train-stats-bar__item">
+          <span className="train-stats-bar__label">👾 怪物 HP</span>
+          <span className="train-stats-bar__value" style={{ color: monsterHealthColor }}>{monsterHealth}%</span>
+        </div>
+        <div className="train-stats-bar__item">
+          <span className="train-stats-bar__label">🛡 玩家 HP</span>
+          <span className="train-stats-bar__value" style={{ color: playerHealthColor }}>{playerHealthPercent}%</span>
+        </div>
+        <div className="train-stats-bar__item">
+          <span className="train-stats-bar__label">⚡ 连击</span>
+          <span className="train-stats-bar__value" style={{ color: comboColor }}>{combo}</span>
+        </div>
+        <div className="train-stats-bar__item">
+          <span className="train-stats-bar__label">🚀 速度</span>
+          <span className="train-stats-bar__value">{wpm} WPM</span>
+        </div>
+        <div className="train-stats-bar__item">
+          <span className="train-stats-bar__label">🎯 准确率</span>
+          <span className="train-stats-bar__value">{(accuracy * 100).toFixed(1)}%</span>
         </div>
       </div>
 
-      {/* 统计信息区域 */}
-      <div className="hud" style={{ 
-        background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)',
-        border: '3px solid #f97316',
-        padding: '16px',
-        borderRadius: '16px'
-      }}>
-        <div className="hud-item">
-          <span style={{ color: '#92400e', fontWeight: 'bold' }}>⏱️ 剩余时间</span>
-          <strong style={{ color: timeColor, fontSize: '28px' }}>{formatTime(remainingTime)}</strong>
-        </div>
-        <div className="hud-item">
-          <span style={{ color: '#92400e', fontWeight: 'bold' }}>🛡️ 玩家血量</span>
-          <strong style={{ color: playerHealthColor, fontSize: '28px' }}>{playerHealthPercent}%</strong>
-          <div style={{ fontSize: '12px', color: '#92400e' }}>失误 {mistakeHits} 次</div>
-        </div>
-        <div className={`hud-item ${comboAnimation ? 'combo-animation' : ''}`}>
-          <span style={{ color: '#92400e', fontWeight: 'bold' }}>⚡ 连击</span>
-          <strong style={{ 
-            color: combo >= 50 ? '#dc2626' : combo >= 25 ? '#f97316' : combo >= 10 ? '#f59e0b' : '#f97316', 
-            fontSize: combo >= 50 ? '36px' : combo >= 25 ? '32px' : '28px',
-            transition: 'all 0.3s ease'
-          }}>
-            {combo}
-            {combo >= 10 && <span style={{ fontSize: '20px', marginLeft: '4px' }}>🔥</span>}
-          </strong>
-          {maxCombo > 0 && <div style={{ fontSize: '12px', color: '#92400e' }}>最高: {maxCombo}</div>}
-        </div>
-        <div className="hud-item">
-          <span style={{ color: '#92400e', fontWeight: 'bold' }}>🚀 速度</span>
-          <strong style={{ color: '#7c3aed', fontSize: '28px' }}>{wpm} WPM</strong>
-        </div>
-        <div className="hud-item">
-          <span style={{ color: '#92400e', fontWeight: 'bold' }}>🎯 准确率</span>
-          <strong style={{ color: '#059669', fontSize: '28px' }}>{(accuracy * 100).toFixed(1)}%</strong>
-        </div>
-        <div className="hud-item">
-          <span style={{ color: '#92400e', fontWeight: 'bold' }}>📊 进度</span>
-          <strong style={{ color: '#2563eb', fontSize: '28px' }}>{Math.floor(progressRatio * 100)}%</strong>
-        </div>
-        <div>
-          <button className="secondary" onClick={handleExit} style={{ 
-            background: '#dc2626', 
-            color: '#fff',
-            fontWeight: 'bold',
-            padding: '10px 20px'
-          }}>❌ 退出</button>
-        </div>
+      <div className="train-floating-buttons">
+        <button
+          type="button"
+          onClick={() => handleFinish()}
+          disabled={entries.length === 0}
+        >
+          结束本轮
+        </button>
+        <button
+          type="button"
+          className="train-floating-buttons__exit"
+          onClick={handleExit}
+        >
+          退出
+        </button>
       </div>
 
-      <div className={`card ${playerDamaged ? 'player-damaged' : ''}`} style={{ 
+      <div className={`card ${playerDamaged ? 'player-damaged' : ''}`} style={{
         marginTop: 24,
         background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
         border: '3px solid #f97316',

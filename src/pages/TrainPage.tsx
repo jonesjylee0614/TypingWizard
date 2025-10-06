@@ -345,7 +345,16 @@ const TrainPage = () => {
   const comboColor = combo >= 50 ? '#facc15' : combo >= 25 ? '#fbbf24' : combo >= 10 ? '#fde68a' : '#fff7ed';
 
   return (
-    <div className="train-page">
+    <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 900,
+          margin: '24px auto 48px',
+          padding: '0 16px',
+          position: 'relative'
+        }}
+      >
       {/* 成就弹出 - 移到顶部不挡住输入区 */}
       {showAchievement && (
         <div className="achievement-popup" style={{
@@ -366,6 +375,101 @@ const TrainPage = () => {
           {showAchievement}
         </div>
       )}
+      
+      {/* 怪物血条区域 */}
+      <div className={`card ${monsterHit ? 'monster-hit' : ''}`} style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: '#fff',
+        padding: '20px',
+        marginBottom: '12px',
+        border: '3px solid #f97316',
+        boxShadow: '0 8px 32px rgba(249, 115, 22, 0.3)'
+      }}>
+        <div style={{ display: 'grid', gap: '16px', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+          <div style={{
+            background: 'rgba(15, 23, 42, 0.35)',
+            borderRadius: '16px',
+            padding: '16px',
+            border: '1px solid rgba(255,255,255,0.2)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+              <div className="monster-emoji" style={{ fontSize: '48px' }}>
+                {monsterHealth > 50 ? '👾' : monsterHealth > 20 ? '😵' : '💀'}
+              </div>
+              <div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold' }}>打字怪兽</div>
+                <div style={{ fontSize: '14px', opacity: 0.9 }}>击败它完成关卡！</div>
+              </div>
+            </div>
+            <div style={{
+              width: '100%',
+              height: '20px',
+              background: 'rgba(15,23,42,0.6)',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              border: '1px solid rgba(255,255,255,0.25)'
+            }}>
+              <div style={{
+                width: `${monsterHealth}%`,
+                height: '100%',
+                background: `linear-gradient(90deg, ${monsterHealthColor} 0%, #fbbf24 100%)`,
+                transition: 'width 0.3s ease',
+                boxShadow: `0 0 10px ${monsterHealthColor}`
+              }} />
+            </div>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginTop: '8px',
+              fontWeight: 600
+            }}>
+              <span>怪物血量</span>
+              <span style={{ color: monsterHealthColor, fontSize: '20px' }}>{monsterHealth}%</span>
+            </div>
+          </div>
+          <div style={{
+            background: 'rgba(15, 23, 42, 0.35)',
+            borderRadius: '16px',
+            padding: '16px',
+            border: '1px solid rgba(255,255,255,0.2)',
+            position: 'relative'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+              <div style={{ fontSize: '48px' }}>{playerHealthPercent > 30 ? '🧙‍♂️' : '🛡️'}</div>
+              <div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold' }}>学员</div>
+                <div style={{ fontSize: '14px', opacity: 0.9 }}>保护自己，避免失误！</div>
+              </div>
+            </div>
+            <div style={{
+              width: '100%',
+              height: '20px',
+              background: 'rgba(15,23,42,0.6)',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              border: '1px solid rgba(255,255,255,0.25)'
+            }}>
+              <div style={{
+                width: `${playerHealthPercent}%`,
+                height: '100%',
+                background: `linear-gradient(90deg, #16a34a 0%, ${playerHealthColor} 100%)`,
+                transition: 'width 0.3s ease',
+                boxShadow: `0 0 10px ${playerHealthColor}`
+              }} />
+            </div>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginTop: '8px',
+              fontWeight: 600
+            }}>
+              <span>玩家血量</span>
+              <span style={{ color: playerHealthColor, fontSize: '20px' }}>{playerHealthPercent}%</span>
+            </div>
+            <div style={{ marginTop: '6px', fontSize: '14px', opacity: 0.85 }}>已承受攻击：{mistakeHits} 次</div>
+          </div>
+        </div>
+      </div>
 
       <div className="train-stats-bar">
         <div className="train-stats-bar__item">
@@ -394,34 +498,17 @@ const TrainPage = () => {
         </div>
       </div>
 
-      <div className="train-floating-buttons">
-        <button
-          type="button"
-          onClick={() => handleFinish()}
-          disabled={entries.length === 0}
-        >
-          结束本轮
-        </button>
-        <button
-          type="button"
-          className="train-floating-buttons__exit"
-          onClick={handleExit}
-        >
-          退出
-        </button>
-      </div>
-
       <div className={`card ${playerDamaged ? 'player-damaged' : ''}`} style={{
-        marginTop: 24,
+        marginTop: 16,
         background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
         border: '3px solid #f97316',
         boxShadow: '0 8px 32px rgba(249, 115, 22, 0.3)'
       }}>
         <div className="typing-container" onClick={() => textareaRef.current?.focus()} style={{
           background: 'transparent',
-          fontSize: '28px',
-          lineHeight: '1.6',
-          padding: '32px'
+          fontSize: '22px',
+          lineHeight: '1.5',
+          padding: '20px'
         }}>
           <div className="typing-text">
             {targetText.split('').map((char, index) => {
@@ -456,7 +543,7 @@ const TrainPage = () => {
             readOnly
           />
         </div>
-        <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
+        <div style={{ marginTop: 20, display: 'flex', gap: 12 }}>
           <button
             className="primary"
             onClick={() => handleFinish()}
@@ -502,7 +589,7 @@ const TrainPage = () => {
             </>
           )}
         </div>
-        <div style={{ marginTop: 16, color: '#94a3b8', fontSize: 16, textAlign: 'center', fontWeight: 'bold' }}>
+        <div className="typing-hint">
           💡 直接在键盘上敲击即可 · 建议切换为英文输入法
         </div>
       </div>
@@ -571,6 +658,7 @@ const TrainPage = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

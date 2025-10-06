@@ -58,9 +58,7 @@ const TrainPage = () => {
   const [combo, setCombo] = useState(0);
   const [maxCombo, setMaxCombo] = useState(0);
   const [contentKey, setContentKey] = useState(Date.now()); // 用于强制重新生成内容
-  const [monsterHit, setMonsterHit] = useState(false);
   const [showAchievement, setShowAchievement] = useState<string | null>(null);
-  const [comboAnimation, setComboAnimation] = useState(false);
   const [playerDamaged, setPlayerDamaged] = useState(false);
   const [playerHealth, setPlayerHealth] = useState(PLAYER_MAX_HEALTH);
   const [mistakeHits, setMistakeHits] = useState(0);
@@ -124,7 +122,6 @@ const TrainPage = () => {
     return dynamicContent.join('\n');
   }, [lesson, contentKey]);
 
-  const progressRatio = entries.length / (targetText.length || 1);
   const correctCount = useMemo(() => entries.filter((entry) => entry.correct).length, [entries]);
   useEffect(() => {
     if (!finished && endedAt !== null) {
@@ -175,10 +172,7 @@ const TrainPage = () => {
       // 播放击键音效
       playTypingSound();
       
-      // 触发怪物受伤动画
-      setMonsterHit(true);
       playMonsterHitSound();
-      setTimeout(() => setMonsterHit(false), 300);
       
       // 连击系统
       setCombo((prev) => {
@@ -191,10 +185,6 @@ const TrainPage = () => {
         if (newCombo % 10 === 0) {
           playComboSound(newCombo);
         }
-        
-        // 触发连击动画
-        setComboAnimation(true);
-        setTimeout(() => setComboAnimation(false), 500);
         
         // 成就检查
         if (newCombo === 10) {
@@ -349,9 +339,10 @@ const TrainPage = () => {
 
   const playerHealthPercent = Math.max(0, Math.round((playerHealth / PLAYER_MAX_HEALTH) * 100));
   const playerHealthColor = playerHealthPercent > 60 ? '#22c55e' : playerHealthPercent > 30 ? '#f59e0b' : '#ef4444';
-  
+
   // 时间警告颜色
   const timeColor = remainingTime < 30 ? '#ef4444' : remainingTime < 60 ? '#f97316' : '#22c55e';
+  const comboColor = combo >= 50 ? '#facc15' : combo >= 25 ? '#fbbf24' : combo >= 10 ? '#fde68a' : '#fff7ed';
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
@@ -480,53 +471,30 @@ const TrainPage = () => {
         </div>
       </div>
 
-      {/* 统计信息区域 */}
-      <div className="hud" style={{ 
-        background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)',
-        border: '3px solid #f97316',
-        padding: '16px',
-        borderRadius: '16px'
-      }}>
-        <div className="hud-item">
-          <span style={{ color: '#92400e', fontWeight: 'bold' }}>⏱️ 剩余时间</span>
-          <strong style={{ color: timeColor, fontSize: '28px' }}>{formatTime(remainingTime)}</strong>
+      <div className="train-stats-bar">
+        <div className="train-stats-bar__item">
+          <span className="train-stats-bar__label">⏱ 剩余时间</span>
+          <span className="train-stats-bar__value" style={{ color: timeColor }}>{formatTime(remainingTime)}</span>
         </div>
-        <div className="hud-item">
-          <span style={{ color: '#92400e', fontWeight: 'bold' }}>🛡️ 玩家血量</span>
-          <strong style={{ color: playerHealthColor, fontSize: '28px' }}>{playerHealthPercent}%</strong>
-          <div style={{ fontSize: '12px', color: '#92400e' }}>失误 {mistakeHits} 次</div>
+        <div className="train-stats-bar__item">
+          <span className="train-stats-bar__label">👾 怪物 HP</span>
+          <span className="train-stats-bar__value" style={{ color: monsterHealthColor }}>{monsterHealth}%</span>
         </div>
-        <div className={`hud-item ${comboAnimation ? 'combo-animation' : ''}`}>
-          <span style={{ color: '#92400e', fontWeight: 'bold' }}>⚡ 连击</span>
-          <strong style={{ 
-            color: combo >= 50 ? '#dc2626' : combo >= 25 ? '#f97316' : combo >= 10 ? '#f59e0b' : '#f97316', 
-            fontSize: combo >= 50 ? '36px' : combo >= 25 ? '32px' : '28px',
-            transition: 'all 0.3s ease'
-          }}>
-            {combo}
-            {combo >= 10 && <span style={{ fontSize: '20px', marginLeft: '4px' }}>🔥</span>}
-          </strong>
-          {maxCombo > 0 && <div style={{ fontSize: '12px', color: '#92400e' }}>最高: {maxCombo}</div>}
+        <div className="train-stats-bar__item">
+          <span className="train-stats-bar__label">🛡 玩家 HP</span>
+          <span className="train-stats-bar__value" style={{ color: playerHealthColor }}>{playerHealthPercent}%</span>
         </div>
-        <div className="hud-item">
-          <span style={{ color: '#92400e', fontWeight: 'bold' }}>🚀 速度</span>
-          <strong style={{ color: '#7c3aed', fontSize: '28px' }}>{wpm} WPM</strong>
+        <div className="train-stats-bar__item">
+          <span className="train-stats-bar__label">⚡ 连击</span>
+          <span className="train-stats-bar__value" style={{ color: comboColor }}>{combo}</span>
         </div>
-        <div className="hud-item">
-          <span style={{ color: '#92400e', fontWeight: 'bold' }}>🎯 准确率</span>
-          <strong style={{ color: '#059669', fontSize: '28px' }}>{(accuracy * 100).toFixed(1)}%</strong>
+        <div className="train-stats-bar__item">
+          <span className="train-stats-bar__label">🚀 速度</span>
+          <span className="train-stats-bar__value">{wpm} WPM</span>
         </div>
-        <div className="hud-item">
-          <span style={{ color: '#92400e', fontWeight: 'bold' }}>📊 进度</span>
-          <strong style={{ color: '#2563eb', fontSize: '28px' }}>{Math.floor(progressRatio * 100)}%</strong>
-        </div>
-        <div>
-          <button className="secondary" onClick={handleExit} style={{ 
-            background: '#dc2626', 
-            color: '#fff',
-            fontWeight: 'bold',
-            padding: '10px 20px'
-          }}>❌ 退出</button>
+        <div className="train-stats-bar__item">
+          <span className="train-stats-bar__label">🎯 准确率</span>
+          <span className="train-stats-bar__value">{(accuracy * 100).toFixed(1)}%</span>
         </div>
       </div>
 
